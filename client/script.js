@@ -1,7 +1,7 @@
 // CHANGE THIS URL AFTER DEPLOYING YOUR SERVER TO RENDER
 // Local testing: 'http://localhost:3000'
 // Production: 'https://your-app-name.onrender.com'
-const BACKEND_URL = 'http://localhost:3000'; 
+const BACKEND_URL = 'https://whiteboard-server-w9eo.onrender.com'; 
 
 const socket = io(BACKEND_URL);
 
