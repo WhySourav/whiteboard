@@ -15,7 +15,7 @@ let drawing = false;
 let current = { x: 0, y: 0 };
 
 // --- 1. Helper: Throttle Function (Optimization) ---
-// Limits how often we emit data to the server (e.g., once every 10ms)
+// Limits how often we emit data to the server (e.g once every 10ms)
 function throttle(callback, delay) {
     let previousCall = new Date().getTime();
     return function() {
@@ -67,6 +67,67 @@ canvas.addEventListener('mousedown', (e) => {
     current.x = e.clientX;
     current.y = e.clientY;
 });
+
+// -. for new text featurre:
+
+function drawText(text, x, y, fontSize, color, emit) {
+    ctx.font = `${fontSize}px sans-serif`;
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+
+    if (!emit) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+
+    socket.emit('text', {
+        text: text,
+        x: x / w,
+        y: y / h,
+        fontSize: fontSize, // Send raw pixel size for simplicity
+        color: color
+    });
+}
+
+// Handle Double Click to Spawn Input
+window.addEventListener('dblclick', (e) => {
+    // 1. Create the temporary input
+    const input = document.createElement('textarea');
+    input.classList.add('temp-text-input');
+    
+    // 2. Position it at mouse click
+    input.style.left = `${e.clientX}px`;
+    input.style.top = `${e.clientY}px`;
+    
+    // 3. Style match
+    input.style.color = colorPicker.value;
+    input.style.fontSize = '20px'; // Default start size
+
+    document.body.appendChild(input);
+    input.focus();
+
+    // 4. Handle "Finishing" the text (Blur event)
+    input.addEventListener('blur', () => {
+        const text = input.value;
+        
+        if (text.trim().length > 0) {
+            // Calculate final font size based on box height
+            // We use roughly 70% of the box height as the font size
+            const boxHeight = input.clientHeight;
+            const calculatedFontSize = Math.floor(boxHeight * 0.7);
+
+            // Draw locally
+            // Note: We add boxHeight to Y because canvas draws text from bottom-left
+            drawText(text, e.clientX, e.clientY + (boxHeight/2), calculatedFontSize, colorPicker.value, true);
+        }
+        
+        // Remove the input box
+        document.body.removeChild(input);
+    });
+});
+
+
+
 
 canvas.addEventListener('mouseup', () => drawing = false);
 canvas.addEventListener('mouseout', () => drawing = false);

@@ -17,6 +17,26 @@ body { overflow: hidden; height: 100vh; background: #f0f0f0; }
     z-index: 10;
 }
 
+/* for textbox */
+/* The floating input box */
+.temp-text-input {
+    position: absolute;
+    z-index: 100; /* Must be above canvas */
+    background: transparent;
+    border: 1px dashed #333; /* Dashed line to show it's active */
+    color: inherit;
+    font-family: sans-serif;
+    padding: 0;
+    margin: 0;
+    resize: both; /* Allows user to resize the box */
+    overflow: hidden;
+    min-height: 20px;
+    min-width: 50px;
+    outline: none;
+}
+
+
+
 .tool-group { display: flex; align-items: center; gap: 8px; }
 
 canvas { display: block; cursor: crosshair; }
