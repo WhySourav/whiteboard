@@ -129,6 +129,7 @@ window.addEventListener('dblclick', (e) => {
 
 
 
+
 canvas.addEventListener('mouseup', () => drawing = false);
 canvas.addEventListener('mouseout', () => drawing = false);
 
@@ -165,6 +166,15 @@ socket.on('draw', (data) => {
     // Denormalize coordinates
     drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color, data.size, false);
 });
+
+socket.on('text',(data) =>{
+    const w = canvas.width;
+    const h = canvas.height;
+    //draw for other
+    drawText(data.text, data.x * w, data.y * h, data.fontSize, data.color, false);
+
+} )
+
 
 socket.on('clear', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
