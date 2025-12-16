@@ -2,7 +2,7 @@
 
 body { overflow: hidden; height: 100vh; background: #f0f0f0; }
 
-.tool-group {
+.toolbar {
     position: fixed;
     top: 20px;
     left: 50%;
