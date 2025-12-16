@@ -8,32 +8,37 @@
 </head>
 <body>
 
-<div class="toolbar">
-    
-    <div style="font-weight:bold; color: #555; margin-right: 15px;">
-        Room: <span id="roomNameDisplay">...</span>
+    <div class="toolbar">
+        <div style="font-weight:bold; color: #555; margin-right: 15px;">
+            Room: <span id="roomNameDisplay">General</span>
+        </div>
+
+        <div class="tool-group">
+            <label>Color</label>
+            <input type="color" id="colorPicker" value="#000000">
+        </div>
+        
+        <div class="tool-group">
+            <label>Size</label>
+            <input type="range" id="sizePicker" min="1" max="50" value="5">
+        </div>
+
+        <div class="tool-group">
+            <button id="eraserBtn">Eraser</button>
+            <button id="downloadBtn">Save</button>
+        </div>
+
+        <button id="clearBtn">Clear Board</button>
     </div>
 
-
-    <div class="tool-group">
-        <label>Color</label>
-        <input type="color" id="colorPicker" value="#000000">
-    </div>
-    <div class="tool-group">
-        <label>Size</label>
-        <input type="range" id="sizePicker" min="1" max="50" value="5">
-    </div>
-    <div class="tool-group">
-        <button id="eraserBtn">Eraser</button>
-        <button id="downloadBtn">Save</button>
-    </div>
-    <button id="clearBtn">Clear Board</button>
-</div>
-
- 
     <canvas id="whiteboard"></canvas>
 
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="script.js"></script>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('roomNameDisplay').innerText = params.get('room') || 'General';
+    </script>
 </body>
 </html>

@@ -1,9 +1,21 @@
+// --- 1. CONFIGURATION & ROOM SETUP ---
 
 const BACKEND_URL = 'https://whiteboard-server-7uvq.onrender.com'; 
 
+// CRITICAL: Define 'room' BEFORE connecting
+const urlParams = new URLSearchParams(window.location.search);
+const room = urlParams.get('room') || 'general'; 
+console.log("Current Room:", room);
+
+// --- 2. CONNECTION ---
 const socket = io(BACKEND_URL);
 
-// --- DOM ELEMENTS ---
+// Join the room as soon as we connect
+socket.on('connect', () => {
+    socket.emit('join_room', room);
+});
+
+// --- 3. DOM ELEMENTS ---
 const canvas = document.getElementById('whiteboard');
 const ctx = canvas.getContext('2d');
 const colorPicker = document.getElementById('colorPicker');
@@ -11,26 +23,13 @@ const sizePicker = document.getElementById('sizePicker');
 const clearBtn = document.getElementById('clearBtn');
 const eraserBtn = document.getElementById('eraserBtn');
 const downloadBtn = document.getElementById('downloadBtn');
-// Display the room name
-document.getElementById('roomNameDisplay').innerText = room;
 
-// --- STATE VARIABLES ---
+// --- 4. STATE VARIABLES ---
 let drawing = false;
 let current = { x: 0, y: 0 };
 let isEraser = false;
 
-
-const urlParams = new URLSearchParams(window.location.search);
-const room = urlParams.get('room') || 'general'; // Default to 'general'
-
-console.log("Joined Room:", room);
-
-// 2. Join the room immediately upon connection
-socket.on('connect', () => {
-    socket.emit('join_room', room);
-});
-
-// --- HELPER FUNCTIONS ---
+// --- 5. HELPER FUNCTIONS ---
 
 function throttle(callback, delay) {
     let previousCall = new Date().getTime();
@@ -50,7 +49,7 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// --- CORE DRAWING FUNCTIONS ---
+// --- 6. CORE DRAWING FUNCTIONS ---
 
 function drawLine(x0, y0, x1, y1, color, size, emit) {
     ctx.beginPath();
@@ -67,7 +66,7 @@ function drawLine(x0, y0, x1, y1, color, size, emit) {
     const w = canvas.width;
     const h = canvas.height;
 
-    // FIX: Send 'room' with the data
+    // Must include 'room' in the data
     socket.emit('draw', {
         room: room, 
         x0: x0 / w, 
@@ -89,7 +88,6 @@ function drawText(text, x, y, fontSize, color, emit) {
     const w = canvas.width;
     const h = canvas.height;
 
-    // FIX: Send 'room' with the data
     socket.emit('text', {
         room: room,
         text: text,
@@ -100,7 +98,7 @@ function drawText(text, x, y, fontSize, color, emit) {
     });
 }
 
-// --- MOUSE EVENT LISTENERS ---
+// --- 7. EVENT LISTENERS ---
 
 canvas.addEventListener('mousedown', (e) => {
     drawing = true;
@@ -114,6 +112,7 @@ canvas.addEventListener('mouseout', () => drawing = false);
 const onMouseMove = throttle((e) => {
     if (!drawing) return;
 
+    // Eraser Logic: if active, force color to background and size to 20
     const color = isEraser ? '#f0f0f0' : colorPicker.value;
     const size = isEraser ? 20 : sizePicker.value;
 
@@ -124,9 +123,7 @@ const onMouseMove = throttle((e) => {
 
 canvas.addEventListener('mousemove', onMouseMove);
 
-// --- TOOL LISTENERS ---
-
-// Double Click for Text
+// Double Click Text Tool
 window.addEventListener('dblclick', (e) => {
     const input = document.createElement('textarea');
     input.classList.add('temp-text-input');
@@ -149,7 +146,7 @@ window.addEventListener('dblclick', (e) => {
     });
 });
 
-// Eraser
+// Eraser Button
 eraserBtn.addEventListener('click', () => {
     isEraser = !isEraser;
     if (isEraser) {
@@ -163,6 +160,7 @@ eraserBtn.addEventListener('click', () => {
     }
 });
 
+// Disable eraser if color changes
 colorPicker.addEventListener('input', () => {
     if (isEraser) {
         isEraser = false;
@@ -172,30 +170,34 @@ colorPicker.addEventListener('input', () => {
     }
 });
 
-// Download
+// Download Button
 downloadBtn.addEventListener('click', () => {
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d');
     tempCanvas.width = canvas.width;
     tempCanvas.height = canvas.height;
+    
+    // Fill background
     tempCtx.fillStyle = '#f0f0f0';
     tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
+    // Draw canvas
     tempCtx.drawImage(canvas, 0, 0);
     
+    // Trigger Download
     const link = document.createElement('a');
     link.download = `whiteboard-${room}.png`;
     link.href = tempCanvas.toDataURL();
     link.click();
 });
 
-// Clear Board
+// Clear Button
 clearBtn.addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // FIX: Send room ID so we only clear OUR room
-    socket.emit('clear', room);
+    socket.emit('clear', room); // Send room ID to clear ONLY this room
 });
 
-// --- SOCKET.IO EVENT LISTENERS ---
+// --- 8. SOCKET INCOMING EVENTS ---
 
 socket.on('draw', (data) => {
     const w = canvas.width;
